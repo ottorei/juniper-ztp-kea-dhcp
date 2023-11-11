@@ -18,6 +18,7 @@ Sample configurations for Juniper ZTP with ISC Kea DHCP
 Dynamic serving can be achieved by passing the request to some backend application such as Django, which parses the fields from the URL. Combine Django with nginx and ¨X-Accel-Redirect¨ -header to handle the logic within Python and just serve the static files with nginx. This example uses nginx to catch the actual request, pass it to Django backend which can then figure out what to do with the device with given vendor class identifier and MAC. If Django responds to nginx's internal request with a valid ¨X-Accel-Redirect¨ -header, nginx will internally fetch that URI and serve it's contents transparently to the client.
 
 ### Example nginx configurtion snippet:
+```
 location /ztp_fetch {
         include /etc/nginx/snippets/ztp_acl.conf;
         proxy_pass http://127.0.0.1:8000/device/ztp_fetch;
@@ -27,11 +28,15 @@ location /protected_ztp_files {
         internal;
         alias /opt/ztp/ztp;
 }
+```
 
 ### Example Django url path:
-path('ztp_fetch/<mode>/<vci>/<mac>', views.ztp_fetch, name='ztp_fetch'),
+```
+path('ztp_fetch/<mode>/<vci>/<mac>', views.ztp_fetch, name='ztp_fetch')
+```
 
 ### Example Django view logic:
+```
 def ztp_fetch(request, mode, vci, mac):
     # Create empty response object
     response = HttpResponse()
@@ -57,5 +62,5 @@ def ztp_fetch(request, mode, vci, mac):
         response['Content-Disposition'] = f'attachment; filename={image_file}.img'
         response["X-Accel-Redirect"] = f"/protected_ztp_files/images/{image_file}"
         return response
-    
+```    
     
